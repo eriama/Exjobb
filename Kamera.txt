@@ -1,0 +1,60 @@
+
+1. Skapa .so lib
+
+	g++ -shared -Wl,-soname,libNI.so.1,--no-undefined -o libNI.so.1.0.1 NI.o -lc -symbolic -lm -lOpenNI2
+
+2. Flytta libNI.so.1.0.1 till /usr/lib
+ 
+	cp libNI.so.1.0.1 /usr/lib/ 
+	ldconfig /usr/lib/    
+ 
+3. Skapa symbolisk link (den symboliska länken, libNI.so, pekar på filen libNI.so.1. 
+Om en ny version ska bildas kan man döpa denna till libNI.so.2 och låta den symboliska länken peka på denna istället. 
+På så sätt kan man behålla den gamla versionen och samtidigt undvika att döpa alla nya filer som man kommer använda till .1 .2 .3 osv osv. 
+Det är endast den symboliska länken libNI.so som kommer synas sen).
+
+	ln -s /usr/lib/libNI.so.1 /usr/lib/libNI.so
+
+4. Skapa testfilen (test.c kompileras och den nya, körbara filen får namnet amanda)
+ 
+	gcc test.c -o amanda -std=c99 -lNI 
+ 
+5. Kör den nya filen
+ 
+	./amanda
+	
+	
+Header filer .h listar alla funktioner som kan användas. I början av ett c-dokument inkluderas de bibliotek man kommer använda sig av. 
+Detta görs med hjälp av headerfilerna. 
+NI.cpp och NI.h är filer som Sara har skapat själv. Det är dessa som hjälper matlab att ta information från kameran.
+
+funktioner i Saras c kod: captureNI, initNI och terminateNI
+
+
+För att komunicera med matlab behöver vi även en C-wrapper fil på min dator.
+Denna innehåller de C++ filer som vi vill använda och gör om dessa till C-format (?).
+
+Sedan skapar vi:
+- en S-function C fil
+- en .tlc fil (Target Language Compiler)
+- en rtw makefile som gör det möjligt att använda dependencies och header files som ligger i en annan mapp än S-funktionen 
+- ett Simulinkblock i Matlab
+
+Sist kompilerar vi S-function C file till en mexfile som använder legacy code commands.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%KAMERAN I MATLAB%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+test_asus använder det vi får ut från kameran, gör om till användbara koordinater och matar ut en 3D matris som heter global
+Vi kan sedan plotta global genom kommandot
+
+plot3(globals(1,:,1), globals(2,:,1), globals(3,:,1),  '*')
+
+och få upp en bild genom att skriva:
+
+figure; imshow(simout(:,:,1))
+
+där 1 är tiden. Vi kan alltså istället skriva figure; imshow(simout(:,:,5)) för att visa vad kameran såg efter 5 sekunder.
+
+
+Alternativt: Kör min matlabfil min_distance som ligger i C:\Users\Amanda\Documents\Documents\LTH\Exjobb\Camera_8Februari

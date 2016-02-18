@@ -1,0 +1,47 @@
+%%%%%%BBB pins%%%%%%%
+
+https://www.youtube.com/watch?v=s9tnTcQlTDY
+
+http://se.mathworks.com/help/supportpkg/beaglebone/examples/pin-muxing.html
+
+bbone = beaglebone_black
+showPinMux(bbone, 'P9')		//green indicating GPIO pins, red +5V, yellow +3.3V, dark gray ground, and blue analog input
+pinmux = readPinmux(bbone, 'P9')
+
+
+%%%%%%Device Tree Overlays (DT)%%%%%%
+http://derekmolloy.ie/gpios-on-the-beaglebone-black-using-device-tree-overlays/
+To see a list of available DT files, execute the following on the MATLAB command line:
+
+system(bbone, 'ls -al /lib/firmware/*.dtbo')
+
+
+%%%%%Small currents!!%%%%%
+4-6 mA on output
+8 mA on input
+
+
+%%%%%Analog input in Simulink%%%%%
+http://se.mathworks.com/help/supportpkg/beaglebone/examples/pin-muxing.html#zmw57dd0e1110
+http://beaglebone.cameon.net/home/reading-the-analog-inputs-adc
+http://www.analog.com/library/analogDialogue/archives/46-06/staying_well_grounded.html
+http://www.linux.com/learn/tutorials/787511-how-to-get-analog-input-on-the-beaglebone-black
+
+1. In the matlab command window:
+system(bbone, 'echo cape-bone-iio | sudo tee /sys/devices/bone_capemgr.*/slots')
+
+2. Check the pin map for analog VDD, analog ground and possible analog input pins.
+showPinMux(bbone, 'P9')		//write in matlab command window, blue=analog input
+VDD_ADC = P9_32
+GNDA_ADC = P9_34
+AIN0 = P9_39
+
+2. Set up the circuit. I have a 10k ohm resistor between ground and the sensor and test it by typing:
+system(bbone, 'cat /sys/devices/ocp.*/helper.*/AIN0')
+in matlab command window. Try again and press the sensor this time. You will see that ans is changing.
+
+3. Create the model in simulink. You'll need on block for analog input (P9_39) and a scope.
+
+4. Under Model Configuration Parameters choose Code Generation -> System target file = ert.tlc (Embedded Coder) and Target hardware = Beaglebone black
+
+5. Build and press play
